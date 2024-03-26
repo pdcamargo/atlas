@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Project } from "@atlas/editor/project";
+import { Dialog } from "@atlas/editor/dialog";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -24,20 +26,41 @@ const formSchema = z.object({
   template: z.string().optional(),
 });
 
-export const ProjectCreateForm = () => {
+type ProjectCreateFormProps = {
+  onProjectCreate: (project: Project) => void;
+};
+
+export const ProjectCreateForm = ({
+  onProjectCreate,
+}: ProjectCreateFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      path: "",
-      template: "",
+      name: "Atlas Demo",
+      path: "/Users/patrickdiascamargo/atlas",
+      template: "empty",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const createProject = await Project.createProject({
+      name: values.name,
+      path: values.path,
+    });
+
+    if (createProject.error) {
+      console.error(createProject.error);
+      return;
+    }
+
+    const openedProject = await Project.openProject(values.path);
+
+    if (!openedProject) {
+      console.error("Failed to open project.");
+      return;
+    }
+
+    onProjectCreate(openedProject);
   };
 
   return (
@@ -64,7 +87,23 @@ export const ProjectCreateForm = () => {
             <FormItem>
               <FormLabel>Project path</FormLabel>
               <FormControl>
-                <Input placeholder="Project Path" {...field} />
+                <Input
+                  {...field}
+                  placeholder="Project Path"
+                  readOnly
+                  onClick={() => {
+                    Dialog.openDirectory({ title: "Select project path" }).then(
+                      (path) => {
+                        if (path) {
+                          form.setValue(
+                            "path",
+                            `${path}/${form.getValues().name}`
+                          );
+                        }
+                      }
+                    );
+                  }}
+                />
               </FormControl>
               <FormDescription>Path to the project directory.</FormDescription>
               <FormMessage />

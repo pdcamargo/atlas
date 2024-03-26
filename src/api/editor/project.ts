@@ -13,6 +13,8 @@ type ProjectOptions = {
 
 type ProjectConfig = Omit<ProjectOptions, "path">;
 
+const requiredFolders = ["assets", "metadata", "src", "configs"];
+
 export type SavedProject = ProjectOptions & {
   lastModified: number;
   lastOpened: number;
@@ -37,8 +39,49 @@ export class Project {
     Project.currentProject = project;
   }
 
+  static async createProject({
+    name,
+    path: targetPath,
+  }: ProjectOptions): Promise<{
+    project: Project | null;
+    error: string | null;
+  }> {
+    const isPathTaken = await fs.exists(targetPath);
+
+    if (isPathTaken) {
+      return {
+        project: null,
+        error: "Path already exists.",
+      };
+    }
+
+    const project = new Project({ path: targetPath, name });
+
+    await fs.createDir(targetPath, { recursive: true });
+
+    await fs.writeJson(await path.join(targetPath, "project.atlas"), {
+      name,
+    });
+
+    for (const folder of requiredFolders) {
+      await fs.createDir(await path.join(targetPath, folder), {
+        recursive: true,
+      });
+    }
+
+    await Project.saveToCache(project);
+    await Project.saveToProjectsList(project);
+
+    return {
+      project,
+      error: null,
+    };
+  }
+
   static async openProject(targetPath: string): Promise<Project | null> {
     const project = await Project.fromPath(targetPath);
+
+    console.log("found project", project);
 
     if (!project) {
       return null;
@@ -69,6 +112,9 @@ export class Project {
     });
   }
 
+  /**
+   * Returns the project from the cache.
+   */
   static async fromCache(): Promise<Project | null> {
     const appCacheDir = await path.appCacheDir();
     const cachePath = await path.join(appCacheDir, "project.atlas");

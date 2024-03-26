@@ -1,8 +1,13 @@
 import { Project } from "@atlas/editor/project";
 import { useEffect, useState } from "react";
 import { ProjectCreateForm } from "./project-create-form";
+import { Button } from "@/components/ui/button";
 
-export const ProjectSelector = () => {
+type ProjectSelectorProps = {
+  onProjectSelect: (project: Project) => void;
+};
+
+export const ProjectSelector = ({ onProjectSelect }: ProjectSelectorProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
@@ -13,6 +18,18 @@ export const ProjectSelector = () => {
     };
 
     loadProjects();
+  }, []);
+
+  useEffect(() => {
+    const getCachedProject = async () => {
+      const project = await Project.fromCache();
+
+      if (project) {
+        onProjectSelect(project);
+      }
+    };
+
+    getCachedProject();
   }, []);
 
   return (
@@ -28,9 +45,24 @@ export const ProjectSelector = () => {
           <div>
             <div className="text-white">No projects found</div>
 
-            <ProjectCreateForm />
+            <ProjectCreateForm
+              onProjectCreate={(project) => {
+                onProjectSelect(project);
+              }}
+            />
           </div>
         )}
+        {projects?.map((project) => (
+          <div
+            key={project.path}
+            className="bg-slate-700 m-4 flex items-center flex-1 w-full"
+          >
+            <div className="text-white">{project.name}</div>
+            <Button size="sm" onClick={() => onProjectSelect(project)}>
+              Open
+            </Button>
+          </div>
+        ))}
       </div>
     </div>
   );

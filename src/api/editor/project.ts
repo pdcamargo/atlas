@@ -1,10 +1,5 @@
-import { readJson } from "@atlas/engine/utils/fs";
-import * as path from "@atlas/engine/utils/path";
-import * as fs from "@atlas/engine/utils/fs";
-import {
-  isPathProject,
-  isProjectConfigValid,
-} from "@atlas/engine/utils/project-validation";
+import { fs, path, projectValidation } from "@atlas/engine";
+import { AssetDatabase, VirtualFileSystem } from "./asset-manager";
 
 type ProjectOptions = {
   path: string;
@@ -24,6 +19,8 @@ export class Project {
   path: string;
   name: string;
 
+  fileSystem: VirtualFileSystem;
+
   private static currentProject: Project | null = null;
 
   constructor({ path, name }: ProjectOptions) {
@@ -35,8 +32,12 @@ export class Project {
     return Project.currentProject;
   }
 
-  static setCurrent(project: Project) {
+  static async setCurrent(project: Project) {
     Project.currentProject = project;
+
+    Project.currentProject.fileSystem = await AssetDatabase.loadFileSystem(
+      `${project.path}/src`
+    );
   }
 
   static async createProject({
@@ -94,15 +95,15 @@ export class Project {
   }
 
   static async fromPath(targetPath: string): Promise<Project | null> {
-    if (!(await isPathProject(targetPath))) {
+    if (!(await projectValidation.isPathProject(targetPath))) {
       return null;
     }
 
-    const projectJson = await readJson<ProjectConfig>(
+    const projectJson = await fs.readJson<ProjectConfig>(
       await path.join(targetPath, "project.atlas")
     );
 
-    if (!(await isProjectConfigValid(projectJson))) {
+    if (!(await projectValidation.isProjectConfigValid(projectJson))) {
       return null;
     }
 
@@ -119,7 +120,7 @@ export class Project {
     const appCacheDir = await path.appCacheDir();
     const cachePath = await path.join(appCacheDir, "project.atlas");
 
-    const json = await readJson<ProjectOptions>(cachePath);
+    const json = await fs.readJson<ProjectOptions>(cachePath);
 
     return Project.fromPath(json.path);
   }
@@ -153,7 +154,7 @@ export class Project {
     let projectsList: SavedProject[] = [];
 
     try {
-      projectsList = await readJson<SavedProject[]>(projectsListPath);
+      projectsList = await fs.readJson<SavedProject[]>(projectsListPath);
     } catch {
       // create the file if it doesn't exist
       await fs.writeJson(projectsListPath, projectsList);
@@ -176,12 +177,14 @@ export class Project {
     return projectsList;
   }
 
-  static async getProjectsList(): Promise<SavedProject[]> {
+  static async getProjectsList(): Promise<Project[]> {
     const appCacheDir = await path.appCacheDir();
     const projectsListPath = await path.join(appCacheDir, "projects.atlas");
 
     try {
-      return await readJson<SavedProject[]>(projectsListPath);
+      const json = await fs.readJson<SavedProject[]>(projectsListPath);
+
+      return json.map((project) => new Project(project));
     } catch {
       return [];
     }

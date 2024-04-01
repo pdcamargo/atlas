@@ -26,4 +26,10 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  define: {
+    IS_ATLAS_EDITOR: true,
+  },
+  build: {
+    sourcemap: true,
+  },
 }));

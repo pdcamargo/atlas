@@ -33,4 +33,8 @@ export class AppWindow {
 
     return await appWindow.isMaximized();
   }
+
+  static async close() {
+    await appWindow.close();
+  }
 }

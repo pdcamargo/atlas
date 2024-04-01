@@ -15,8 +15,14 @@
       "fs": {
         "all": true,
         "scope": ["**", "*"]
+      },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**", "*"]
       }
     },
+
     "windows": [
       {
         "title": "Atlas",
@@ -28,7 +34,7 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
     },
     "bundle": {
       "active": true,

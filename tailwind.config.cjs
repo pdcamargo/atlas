@@ -73,6 +73,14 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
+    data: {
+      expanded: 'expanded~="true"',
+      selected: 'selected~="true"',
+      collapsed: 'expanded~="false"',
+    },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("tailwind-dracula")("dracula"),
+  ],
 };

@@ -1,1 +1,5 @@
-export * from "@tauri-apps/api/path";
+import * as tauriPath from "@tauri-apps/api/path";
+
+export const path = {
+  ...tauriPath,
+};

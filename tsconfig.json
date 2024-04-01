@@ -19,11 +19,14 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "strictPropertyInitialization": false,
 
     "paths": {
       "@/*": ["./src/renderer/*"],
       "@atlas/engine/*": ["./src/api/engine/*"],
-      "@atlas/editor/*": ["./src/api/editor/*"]
+      "@atlas/engine": ["./src/api/engine/index.ts"],
+      "@atlas/editor/*": ["./src/api/editor/*"],
+      "@atlas/editor": ["./src/api/editor/index.ts"]
     }
   },
   "include": ["src"],

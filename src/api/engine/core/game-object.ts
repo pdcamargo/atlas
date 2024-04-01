@@ -4,18 +4,16 @@ import {
   IComponent,
   IGameObject,
   IGameObjectConstructorArgs,
-  IScene,
 } from "./types";
 
 export class GameObject implements IGameObject {
   public readonly id: string;
 
   public name: string;
-  public scene: IScene;
   public parent: IGameObject | null;
 
   public readonly components: IComponent[];
-  public readonly children: IGameObject[];
+  public children: IGameObject[];
   public readonly transform: Transform;
 
   constructor({
@@ -25,7 +23,6 @@ export class GameObject implements IGameObject {
     parent = null,
     children = [],
     transform,
-    scene,
   }: IGameObjectConstructorArgs) {
     this.id = id || crypto.randomUUID();
     this.name = name ?? "GameObject";
@@ -33,7 +30,6 @@ export class GameObject implements IGameObject {
     this.parent = parent;
     this.children = children;
     this.transform = transform || new Transform({ gameObject: this });
-    this.scene = scene;
   }
 
   getComponent = <T extends IComponent>(type: ComponentConstructor<T>): T => {

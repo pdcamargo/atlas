@@ -1,18 +1,18 @@
-import { resolve } from "./path";
-import { exists } from "./fs";
+import { path } from "./path";
+import { fs } from "./fs";
 
-export async function isPathProject(path: string): Promise<boolean> {
+async function isPathProject(targetPath: string): Promise<boolean> {
   const requiredFolders = ["assets", "metadata", "src", "configs"];
   const requiredFiles = ["project.atlas"];
 
-  const folderExists = await exists(path);
+  const folderExists = await fs.exists(targetPath);
 
   if (!folderExists) {
     return false;
   }
 
   const promises = requiredFolders.map(async (folder) =>
-    exists(await resolve(path, folder))
+    fs.exists(await path.resolve(targetPath, folder))
   );
 
   const foldersExist = await Promise.all(promises);
@@ -22,7 +22,7 @@ export async function isPathProject(path: string): Promise<boolean> {
   }
 
   const promisesFiles = requiredFiles.map(async (file) =>
-    exists(await resolve(path, file))
+    fs.exists(await path.resolve(targetPath, file))
   );
 
   const filesExist = await Promise.all(promisesFiles);
@@ -35,7 +35,7 @@ type ProjectConfig = {
   version: string;
 };
 
-export async function isProjectConfigValid(
+async function isProjectConfigValid(
   config: Record<string, any>
 ): Promise<boolean> {
   const projectConfig = config as ProjectConfig;
@@ -46,3 +46,8 @@ export async function isProjectConfigValid(
 
   return true;
 }
+
+export const projectValidation = {
+  isPathProject,
+  isProjectConfigValid,
+};

@@ -1,4 +1,4 @@
-import { Project } from "@atlas/editor/project";
+import { Project, SavedProject } from "@atlas/editor/project";
 import { useEffect, useState } from "react";
 import { ProjectCreateForm } from "./project-create-form";
 import { Button } from "@/components/ui/button";
@@ -20,18 +20,6 @@ export const ProjectSelector = ({ onProjectSelect }: ProjectSelectorProps) => {
     loadProjects();
   }, []);
 
-  useEffect(() => {
-    const getCachedProject = async () => {
-      const project = await Project.fromCache();
-
-      if (project) {
-        onProjectSelect(project);
-      }
-    };
-
-    getCachedProject();
-  }, []);
-
   return (
     <div className="w-full flex-1 h-full flex flex-col justify-start items-start bg-slate-900">
       <div className="w-full h-16 flex justify-between items-center px-4 bg-slate-800">
@@ -47,7 +35,12 @@ export const ProjectSelector = ({ onProjectSelect }: ProjectSelectorProps) => {
 
             <ProjectCreateForm
               onProjectCreate={(project) => {
-                onProjectSelect(project);
+                onProjectSelect(
+                  new Project({
+                    name: project.name,
+                    path: project.path,
+                  })
+                );
               }}
             />
           </div>

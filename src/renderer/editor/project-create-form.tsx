@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Project } from "@atlas/editor/project";
+import { Project, SavedProject } from "@atlas/editor/project";
 import { Dialog } from "@atlas/editor/dialog";
 
 const formSchema = z.object({
@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 type ProjectCreateFormProps = {
-  onProjectCreate: (project: Project) => void;
+  onProjectCreate: (project: SavedProject) => void;
 };
 
 export const ProjectCreateForm = ({
@@ -60,7 +60,12 @@ export const ProjectCreateForm = ({
       return;
     }
 
-    onProjectCreate(openedProject);
+    onProjectCreate({
+      lastModified: Date.now(),
+      lastOpened: Date.now(),
+      name: values.name,
+      path: values.path,
+    });
   };
 
   return (

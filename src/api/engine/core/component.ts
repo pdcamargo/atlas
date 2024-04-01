@@ -8,4 +8,14 @@ export class Component implements IComponent {
     this.id = id || crypto.randomUUID();
     this.gameObject = gameObject;
   }
+
+  onAwake() {}
+  onStart() {}
+
+  onUpdate() {}
+  onEarlyUpdate() {}
+  onLateUpdate() {}
+
+  onDestroy() {}
+  onEnable() {}
 }

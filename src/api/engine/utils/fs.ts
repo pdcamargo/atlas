@@ -1,13 +1,43 @@
-import { readTextFile, writeTextFile } from "@tauri-apps/api/fs";
+import * as tauriFs from "@tauri-apps/api/fs";
+import { path } from "./path";
 
-export * from "@tauri-apps/api/fs";
-
-export async function readJson<T>(path: string): Promise<T> {
-  const content = await readTextFile(path);
+async function readJson<T>(path: string): Promise<T> {
+  const content = await tauriFs.readTextFile(path);
 
   return JSON.parse(content);
 }
 
-export async function writeJson<T>(path: string, data: T): Promise<void> {
-  await writeTextFile(path, JSON.stringify(data));
+async function writeJson<T>(path: string, data: T): Promise<void> {
+  await tauriFs.writeTextFile(
+    path,
+    typeof data !== "string" ? JSON.stringify(data, null, 2) : data
+  );
 }
+
+async function ensureDir(targetPath: string): Promise<void> {
+  const extension = await path.extname(targetPath);
+
+  if (extension) {
+    targetPath = await path.dirname(targetPath);
+  }
+
+  await tauriFs.createDir(targetPath, { recursive: true });
+}
+
+async function isDir(targetPath: string): Promise<boolean> {
+  try {
+    const extensionName = await path.extname(targetPath);
+
+    return !extensionName;
+  } catch {
+    return false;
+  }
+}
+
+export const fs = {
+  readJson,
+  writeJson,
+  ensureDir,
+  isDir,
+  ...tauriFs,
+};

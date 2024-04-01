@@ -1,3 +1,5 @@
+import * as PIXI from "pixi.js";
+
 import { GameObject } from "./game-object";
 import {
   ComponentConstructor,
@@ -15,17 +17,52 @@ export class Scene implements IScene {
 
   readonly root: IGameObject;
 
-  constructor({ name, id }: ISceneConstructorArgs) {
+  /**
+   * The container that will be rendered to the screen.
+   */
+  private readonly sceneContainer: PIXI.Container;
+
+  /**
+   * The container that will hold all the game objects.
+   *
+   * This will be automatically added to the `container` property. Useful for implementing camera systems.
+   */
+  public readonly container: PIXI.Container;
+
+  constructor({ name, id, root }: ISceneConstructorArgs) {
     this.id = id || crypto.randomUUID();
     this.name = name;
-    this.root = new GameObject({
-      scene: this,
-      children: [],
-      components: [],
-      id: crypto.randomUUID(),
-      name: "Root",
-      parent: null,
-    });
+    this.root =
+      root ??
+      new GameObject({
+        children: [],
+        components: [],
+        id: crypto.randomUUID(),
+        name: "Root",
+        parent: null,
+      });
+
+    this.sceneContainer = new PIXI.Container();
+    this.container = new PIXI.Container();
+
+    this.sceneContainer.addChild(this.container);
+  }
+  findGameObjectById(id: string, recursive = true): IGameObject | null {
+    const queue = [this.root];
+
+    while (queue.length) {
+      const gameObject = queue.shift()!;
+
+      if (gameObject.id === id) {
+        return gameObject;
+      }
+
+      if (recursive) {
+        queue.push(...gameObject.children);
+      }
+    }
+
+    return null;
   }
 
   findGameObjectByType<T extends IComponent>(
@@ -117,9 +154,12 @@ export class Scene implements IScene {
   createGameObject(
     args: Omit<IGameObjectConstructorArgs, "scene">
   ): IGameObject {
-    return new GameObject({
+    const go = new GameObject({
       ...args,
-      scene: this,
     });
+
+    this.addGameObject(go);
+
+    return go;
   }
 }

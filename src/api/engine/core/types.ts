@@ -3,6 +3,22 @@ import { Vector2 } from "./math";
 export type IComponent = {
   readonly id: string;
   gameObject: IGameObject;
+
+  onAwake(): void;
+  onStart(): void;
+
+  onUpdate(): void;
+  onLateUpdate(): void;
+  onEarlyUpdate(): void;
+
+  onDestroy(): void;
+
+  /**
+   * Called when the component is enabled.
+   *
+   * This is also called by the editor when the component is added to a game object whether the game is running or not.
+   */
+  onEnable(): void;
 };
 
 export type ITransform = {
@@ -39,7 +55,6 @@ export type ComponentConstructorArgs = {
 export type ComponentConstructor<T> = new (args: ComponentConstructorArgs) => T;
 
 export type IGameObjectConstructorArgs = {
-  scene: IScene;
   id?: string;
   name?: string;
   components?: IComponent[];
@@ -57,7 +72,6 @@ export type IGameObject = {
 
   name: string;
   parent: IGameObject | null;
-  scene: IScene;
 
   readonly components: IComponent[];
   readonly children: IGameObject[];
@@ -95,6 +109,7 @@ export type IGameObject = {
 export type ISceneConstructorArgs = {
   id?: string;
   name: string;
+  root?: IGameObject;
 };
 
 export type ISceneConstructor = new (args: ISceneConstructorArgs) => IScene;
@@ -118,6 +133,8 @@ export type IScene = {
   findGameObjectByName(name: string, recursive?: boolean): IGameObject | null;
 
   findGameObjectsByName(name: string, recursive?: boolean): IGameObject[];
+
+  findGameObjectById(id: string, recursive?: boolean): IGameObject | null;
 
   addGameObject(gameObject: IGameObject): void;
 

@@ -181,7 +181,7 @@ const ContextMenuShortcut = ({
 };
 ContextMenuShortcut.displayName = "ContextMenuShortcut";
 
-export type DynamicContextMenuItem =
+export type SimpleContextMenuItem =
   | {
       id: string;
       label: React.ReactNode;
@@ -190,24 +190,26 @@ export type DynamicContextMenuItem =
       onClick?: React.MouseEventHandler;
       disabled?: boolean;
       inset?: boolean;
-      children?: DynamicContextMenuItem[];
+      children?: SimpleContextMenuItem[];
       type?: "item";
     }
   | {
       type: "separator";
     };
 
-type DynamicContextMenuProps = {
-  menuItems: DynamicContextMenuItem[];
+type SimpleContextMenuProps = {
+  menuItems: SimpleContextMenuItem[];
   children: React.ReactNode;
+  onOpenChange?: (open: boolean) => void;
 };
 
-const DynamicContextMenu = ({
+const SimpleContextMenu = ({
   menuItems,
   children,
-}: DynamicContextMenuProps) => {
+  onOpenChange,
+}: SimpleContextMenuProps) => {
   const renderMenuItems = React.useCallback(
-    (items: DynamicContextMenuItem[]) => {
+    (items: SimpleContextMenuItem[]) => {
       return items.map((item, index) => {
         if ("type" in item && item.type === "separator") {
           return <ContextMenuSeparator key={index} />;
@@ -256,8 +258,8 @@ const DynamicContextMenu = ({
   );
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+    <ContextMenu onOpenChange={onOpenChange}>
+      <ContextMenuTrigger>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-64 frosted-glass">
         {renderMenuItems(menuItems)}
       </ContextMenuContent>
@@ -281,5 +283,5 @@ export {
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuRadioGroup,
-  DynamicContextMenu,
+  SimpleContextMenu,
 };

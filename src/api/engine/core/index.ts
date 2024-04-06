@@ -5,3 +5,4 @@ export * from "./scene";
 export * from "./transform";
 export * from "./managers";
 export * from "./types";
+export * from "./components";

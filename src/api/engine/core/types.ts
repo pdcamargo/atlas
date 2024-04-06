@@ -19,6 +19,10 @@ export type IComponent = {
    * This is also called by the editor when the component is added to a game object whether the game is running or not.
    */
   onEnable(): void;
+
+  onValidate(): void;
+
+  name: string;
 };
 
 export type ITransform = {
@@ -102,6 +106,8 @@ export type IGameObject = {
   ): T | null;
 
   addComponent<T extends IComponent>(type: ComponentConstructor<T>): T;
+
+  removeComponent<T extends IComponent>(type: ComponentConstructor<T>): void;
 
   hasComponent<T extends IComponent>(type: ComponentConstructor<T>): boolean;
 };

@@ -1,6 +1,9 @@
 import { Project, SavedProject } from "@atlas/editor/project";
 import { useEffect, useState } from "react";
-import { ProjectCreateForm } from "./project-create-form";
+import {
+  ProjectCreateForm,
+  useProjectCreateFormDialog,
+} from "./project-create-form";
 import { Button } from "@/components/ui/button";
 
 type ProjectSelectorProps = {
@@ -9,6 +12,7 @@ type ProjectSelectorProps = {
 
 export const ProjectSelector = ({ onProjectSelect }: ProjectSelectorProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const projectCreateFormDialog = useProjectCreateFormDialog();
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -25,7 +29,23 @@ export const ProjectSelector = ({ onProjectSelect }: ProjectSelectorProps) => {
       <div className="w-full h-16 flex justify-between items-center px-4 bg-slate-800">
         <div className="text-white">Projects</div>
         <div className="flex justify-end items-center">
-          <button className="btn btn-primary">New Project</button>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              projectCreateFormDialog.show({
+                onProjectCreate: (project) => {
+                  onProjectSelect(
+                    new Project({
+                      name: project.name,
+                      path: project.path,
+                    })
+                  );
+                },
+              });
+            }}
+          >
+            New Project
+          </button>
         </div>
       </div>
       <div className="w-full h-full flex justify-center items-center">

@@ -1,5 +1,5 @@
 import { makeAutoObservable } from "mobx";
-import { AppWindow } from ".";
+import { AppWindow, Undo } from ".";
 
 type EditorAction = () => void;
 
@@ -23,6 +23,12 @@ export const EditorMenu = new (class EditorMenu {
 
     this.registerAction("file/New Project", newProject);
     this.registerAction("file/Quit", quit);
+    this.registerAction("edit/Undo", () => {
+      Undo.undo();
+    });
+    this.registerAction("edit/Redo", () => {
+      Undo.redo();
+    });
   }
 
   registerAction(path: string, action: EditorAction) {

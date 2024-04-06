@@ -20,7 +20,7 @@ export class Scene implements IScene {
   /**
    * The container that will be rendered to the screen.
    */
-  private readonly sceneContainer: PIXI.Container;
+  public readonly sceneContainer: PIXI.Container;
 
   /**
    * The container that will hold all the game objects.

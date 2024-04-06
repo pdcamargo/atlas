@@ -30,14 +30,23 @@ async function isDir(targetPath: string): Promise<boolean> {
 
     return !extensionName;
   } catch {
+    return true;
+  }
+}
+
+async function exists(targetPath: string): Promise<boolean> {
+  try {
+    return await tauriFs.exists(targetPath);
+  } catch {
     return false;
   }
 }
 
 export const fs = {
+  ...tauriFs,
   readJson,
   writeJson,
   ensureDir,
   isDir,
-  ...tauriFs,
+  exists,
 };

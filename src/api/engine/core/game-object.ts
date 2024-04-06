@@ -30,6 +30,8 @@ export class GameObject implements IGameObject {
     this.parent = parent;
     this.children = children;
     this.transform = transform || new Transform({ gameObject: this });
+
+    this.children.forEach((child) => (child.parent = this));
   }
 
   getComponent = <T extends IComponent>(type: ComponentConstructor<T>): T => {
@@ -137,4 +139,16 @@ export class GameObject implements IGameObject {
 
     return components;
   };
+
+  removeComponent<T extends IComponent>(type: ComponentConstructor<T>): void {
+    const index = this.components.findIndex(
+      (component) => component instanceof type
+    );
+
+    if (index === -1) {
+      throw new Error(`Component of type ${type.name} not found`);
+    }
+
+    this.components.splice(index, 1);
+  }
 }

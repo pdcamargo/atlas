@@ -5,6 +5,13 @@ export class ImageLoader extends BaseLoader<HTMLImageElement> {
 
   public supportedExtensions = ["png", "jpg", "jpeg", "gif", "webp"];
 
+  public loadWithMetadata(
+    path: string,
+    metadata: Record<string, any>
+  ): Promise<HTMLImageElement> {
+    return this.load(path);
+  }
+
   public async load(path: string): Promise<HTMLImageElement> {
     if (this.cache.has(path)) {
       return this.cache.get(path)!;

@@ -18,4 +18,9 @@ export class Component implements IComponent {
 
   onDestroy() {}
   onEnable() {}
+  onValidate() {}
+
+  get name() {
+    return this.constructor.name;
+  }
 }

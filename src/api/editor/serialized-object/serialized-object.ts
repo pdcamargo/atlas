@@ -1,6 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import { SerializedProperty } from "./serialized-property";
-import { get } from "../utils";
+import { Undo } from "../undo";
+
+import get from "lodash/get";
 
 const NOT_FOUND_SYMBOL = Symbol("NOT_FOUND");
 
@@ -43,8 +45,30 @@ export class SerializedObject<T = any> {
   }
 
   public applyModifiedProperties() {
-    // TODO: apply changes to the target object
-    // TODO: add undo/redo functionality
+    const redoAction = () => {
+      this._properties.forEach((property) => {
+        property.applyChanges();
+      });
+    };
+
+    const undoAction = () => {
+      this._properties.forEach((property) => {
+        property.revertChanges();
+      });
+    };
+
+    redoAction();
+
+    Undo.add({
+      redo: redoAction,
+      undo: undoAction,
+    });
+  }
+
+  public applyModifiedPropertiesWithoutUndo() {
+    this._properties.forEach((property) => {
+      property.applyChanges();
+    });
   }
 
   public get allProperties() {

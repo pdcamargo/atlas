@@ -82,9 +82,37 @@
   .frosted-glass {
     @apply backdrop-blur-lg backdrop-filter bg-opacity-5 bg-white/5;
   }
+
+  .checkered-bg {
+    --checker-color: rgba(255, 255, 255, 0.2);
+    background-image: linear-gradient(
+        45deg,
+        var(--checker-color) 25%,
+        transparent 25%
+      ),
+      linear-gradient(-45deg, var(--checker-color) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--checker-color) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--checker-color) 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
 }
 
 @layer components {
+  .component-accordion {
+    @apply w-full flex flex-col flex-1 mb-1;
+
+    &-header {
+      @apply flex items-center justify-between cursor-pointer select-none rounded-none px-2 py-1.5 text-sm font-semibold bg-white/10;
+      @apply shadow-lg;
+      @apply hover:bg-white/5;
+    }
+
+    &-content {
+      @apply flex flex-col w-full bg-black/10 rounded-none shadow-inner py-1 px-2;
+    }
+  }
+
   .menu-bar {
     &-content {
       @apply z-50 min-w-[12rem] overflow-hidden rounded-md border bg-aro p-1 shadow-lg border-aro-900;
@@ -108,8 +136,8 @@
     }
   }
 
-  .panel-container {
-    @apply flex flex-1 gap-2 p-2 w-full overflow-hidden;
+  .panel {
+    @apply flex flex-1 gap-2 w-full overflow-hidden;
   }
 
   .panel-content {

@@ -2,10 +2,10 @@ import React, { useCallback, useMemo } from "react";
 import { ChevronRight } from "lucide-react";
 import useControlledValue from "../hooks/useControlledValue";
 import { cn } from "@/utils";
-import { DynamicContextMenu, DynamicContextMenuItem } from "./context-menu";
+import { SimpleContextMenu, SimpleContextMenuItem } from "./context-menu";
 import { SerializedProperty } from "@atlas/editor";
 import { observer } from "mobx-react-lite";
-import { toJS } from "mobx";
+import { Draggable } from "./draggable";
 
 export interface TreeNode<T = any> {
   id: string;
@@ -38,7 +38,7 @@ type TreeViewContextType<T = any> = {
   collapseAll: () => void;
   expandAll: () => void;
 
-  getContextMenu?: (node: TreeNode<T>) => DynamicContextMenuItem[] | null;
+  getContextMenu?: (node: TreeNode<T>) => SimpleContextMenuItem[] | null;
 };
 
 type OmitFromContext =
@@ -187,9 +187,9 @@ const TreeNode = observer(
       observer(({ children }: { children: React.ReactNode }) => {
         if (hasContextMenu) {
           return (
-            <DynamicContextMenu menuItems={contextMenuItems!}>
+            <SimpleContextMenu menuItems={contextMenuItems!}>
               {children}
-            </DynamicContextMenu>
+            </SimpleContextMenu>
           );
         }
 
@@ -213,24 +213,26 @@ const TreeNode = observer(
         }
       >
         <Wrapper>
-          <div
-            className="tree-view-node-title-container"
-            data-expanded={isExpanded}
-            data-selected={isSelected}
-            onClick={handleSelect}
-          >
-            {node.children && node.children.length > 0 ? (
-              <ChevronRight
-                onClick={handleExpand}
-                className="tree-view-node-chevron"
-                data-expanded={isExpanded}
-              />
-            ) : (
-              <div className="tree-view-node-chevron" />
-            )}
+          <Draggable type="asset">
+            <div
+              className="tree-view-node-title-container"
+              data-expanded={isExpanded}
+              data-selected={isSelected}
+              onClick={handleSelect}
+            >
+              {node.children && node.children.length > 0 ? (
+                <ChevronRight
+                  onClick={handleExpand}
+                  className="tree-view-node-chevron"
+                  data-expanded={isExpanded}
+                />
+              ) : (
+                <div className="tree-view-node-chevron" />
+              )}
 
-            <span className="tree-view-node-title">{title}</span>
-          </div>
+              <span className="tree-view-node-title">{title}</span>
+            </div>
+          </Draggable>
         </Wrapper>
 
         {node.children && isExpanded && (

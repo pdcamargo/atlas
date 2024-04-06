@@ -1,4 +1,4 @@
-import { Scene } from "@atlas/engine";
+import { GameObject, Scene } from "@atlas/engine";
 import { makeAutoObservable } from "mobx";
 
 export class EditorScene {
@@ -14,6 +14,14 @@ export class EditorScene {
 
   public get gameObjects() {
     return this.scene.root.children;
+  }
+
+  public addGameObject(gameObject: GameObject) {
+    this.scene.addGameObject(gameObject);
+  }
+
+  public get container() {
+    return this.scene.container;
   }
 
   public get isOnDisk() {

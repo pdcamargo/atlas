@@ -5,6 +5,13 @@ export class AudioLoader extends BaseLoader<HTMLAudioElement> {
 
   public supportedExtensions = [];
 
+  public loadWithMetadata(
+    path: string,
+    metadata: Record<string, any>
+  ): Promise<HTMLAudioElement> {
+    return this.load(path);
+  }
+
   public async load(path: string): Promise<HTMLAudioElement> {
     if (IS_ATLAS_EDITOR) {
       const { convertFileSrc } = await import("@tauri-apps/api/tauri");

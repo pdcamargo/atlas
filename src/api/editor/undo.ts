@@ -1,4 +1,6 @@
 import { makeAutoObservable } from "mobx";
+import { ComponentConstructor, IComponent, IGameObject } from "../engine";
+import { SerializedObject } from ".";
 
 type UndoableAction = {
   undo: () => void;
@@ -41,5 +43,45 @@ export const Undo = new (class Undo {
     }
     this.stack.push(undoable);
     this.index += 1;
+  }
+
+  public addComponent<T extends IComponent>(
+    gameObject: IGameObject | SerializedObject<IGameObject>,
+    component: ComponentConstructor<T>
+  ) {
+    const redo = () => {
+      if (gameObject instanceof SerializedObject) {
+        const componentsArray = gameObject.findProperty("components");
+
+        componentsArray.arrayValue = [
+          ...componentsArray.arrayValue,
+          new component({ gameObject: gameObject.targetObject }),
+        ];
+
+        gameObject.applyModifiedProperties();
+      } else {
+        const c = gameObject.addComponent(component);
+
+        c.onEnable();
+      }
+    };
+
+    const undo = () => {
+      if (gameObject instanceof SerializedObject) {
+        const componentsArray = gameObject.findProperty("components");
+
+        componentsArray.arrayValue = componentsArray.arrayValue.filter(
+          (c) => !(c instanceof component)
+        );
+
+        gameObject.applyModifiedProperties();
+      } else {
+        gameObject.removeComponent(component);
+      }
+    };
+
+    this.add({ undo, redo });
+
+    redo();
   }
 })();

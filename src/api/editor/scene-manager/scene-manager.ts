@@ -1,7 +1,13 @@
 import { makeAutoObservable } from "mobx";
 import { EditorScene } from "./editor-scene";
-import { Scene, Serialization, fs, path } from "@atlas/engine";
-import { Project } from "..";
+import {
+  Scene,
+  Serialization,
+  fs,
+  path,
+  SceneManager as EngineSceneManager,
+} from "@atlas/engine";
+import { EditorRenderer, Project } from "..";
 
 export const SceneManager = new (class SceneManager {
   public currentScene: EditorScene | null = null;
@@ -11,7 +17,12 @@ export const SceneManager = new (class SceneManager {
   }
 
   setCurrentScene(scene: EditorScene) {
+    if (this.currentScene) {
+      EditorRenderer.clear();
+    }
+
     this.currentScene = scene;
+    EngineSceneManager.setCurrentScene(scene.scene);
   }
 
   public async newScene(name: string, targetPath: string) {

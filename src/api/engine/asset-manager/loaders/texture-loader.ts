@@ -9,12 +9,13 @@ export type ScaleMode =
   | "linear";
 
 type TextureMetadata = {
+  textureName: string;
   scaleMode?: ScaleMode;
   antialias?: boolean;
   sprites: {
     [key: string]: {
-      width?: number;
-      height?: number;
+      width: number;
+      height: number;
       alpha?: number;
       anchor?: {
         x: number;
@@ -33,7 +34,7 @@ type TextureMetadata = {
   };
 };
 
-type SpriteObject = {
+export type SpriteObject = {
   sprite: PIXI.Sprite;
   name: string;
   metadata: TextureMetadata["sprites"][string];
@@ -47,6 +48,9 @@ export class TextureObject {
   constructor(image: HTMLImageElement, metadata: TextureMetadata) {
     this.metadata = metadata;
     this.texture = PIXI.Texture.from(image);
+
+    this.texture.source.scaleMode = metadata.scaleMode || "nearest";
+    this.texture.source.antialias = metadata.antialias || false;
 
     for (const [key, spriteMetadata] of Object.entries(metadata.sprites)) {
       const sprite = new PIXI.Sprite({
@@ -65,6 +69,8 @@ export class TextureObject {
         alpha: spriteMetadata.alpha,
         scale: spriteMetadata.scale,
         rotation: spriteMetadata.rotation,
+
+        label: key,
       });
 
       this.sprites.push({
@@ -81,6 +87,42 @@ export class TextureLoader extends BaseLoader<TextureObject> {
 
   public supportedExtensions = ["png", "jpg", "jpeg", "gif", "webp"];
 
+  public async loadWithMetadata(
+    path: string,
+    metadata: TextureMetadata
+  ): Promise<TextureObject> {
+    if (this.cache.has(path)) {
+      return this.cache.get(path)!;
+    }
+
+    if (IS_ATLAS_EDITOR) {
+      const { convertFileSrc } = await import("@tauri-apps/api/tauri");
+      const fileSrc = convertFileSrc(path, "asset");
+
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+
+        image.onload = () => {
+          const textureObject = new TextureObject(image, metadata);
+
+          this.cache.set(path, textureObject);
+
+          resolve(textureObject);
+        };
+
+        image.onerror = (error) => {
+          reject(error);
+        };
+
+        image.src = fileSrc;
+      });
+    }
+
+    // TODO: implement loading from the binary asset resources
+    return Promise.reject(new Error("Not implemented"));
+  }
+
   public async load(path: string): Promise<TextureObject> {
     if (this.cache.has(path)) {
       return this.cache.get(path)!;
@@ -94,7 +136,10 @@ export class TextureLoader extends BaseLoader<TextureObject> {
         const image = new Image();
 
         image.onload = () => {
-          const textureObject = new TextureObject(image, { sprites: {} });
+          const textureObject = new TextureObject(image, {
+            textureName: "",
+            sprites: {},
+          });
 
           this.cache.set(path, textureObject);
 
@@ -115,10 +160,13 @@ export class TextureLoader extends BaseLoader<TextureObject> {
 
   public createDefaultMedata(): TextureMetadata {
     return {
+      textureName: "",
       scaleMode: "nearest",
       antialias: false,
       sprites: {
         default: {
+          width: 100,
+          height: 100,
           position: { x: 0, y: 0 },
           anchor: { x: 0, y: 0 },
         },

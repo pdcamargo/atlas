@@ -21,6 +21,10 @@
     "noFallthroughCasesInSwitch": true,
     "strictPropertyInitialization": false,
 
+    /* Decorators */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
     "paths": {
       "@/*": ["./src/renderer/*"],
       "@atlas/engine/*": ["./src/api/engine/*"],

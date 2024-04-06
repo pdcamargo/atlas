@@ -1,9 +1,13 @@
 import { makeAutoObservable } from "mobx";
 import { SerializedObject } from ".";
 import { Vector2, Color, Rect, Transform } from "@atlas/engine";
+import set from "lodash/set";
+import { toTitleCase } from "../utils";
+import { Sprite } from "pixi.js";
 
 export class SerializedProperty {
   private _newValue: any;
+  private _previousValue: any;
 
   constructor(
     public readonly serializedObject: SerializedObject,
@@ -19,6 +23,7 @@ export class SerializedProperty {
     );
 
     this._newValue = originalValue;
+    this._previousValue = originalValue;
   }
 
   public get isDirty() {
@@ -38,7 +43,24 @@ export class SerializedProperty {
     return typeof this._newValue === "object" || Array.isArray(this._newValue);
   }
 
-  public getChildren() {
+  public get largestChildDisplayNameLength() {
+    if (!this.hasChildren) {
+      return 0;
+    }
+
+    // loop through all children and get the largest display name
+    let largest = 0;
+
+    this.childProperties.forEach((child) => {
+      if (child.displayName.length > largest) {
+        largest = child.displayName.length;
+      }
+    });
+
+    return largest;
+  }
+
+  public get childProperties() {
     if (!this.hasChildren) {
       return [];
     }
@@ -47,16 +69,10 @@ export class SerializedProperty {
 
     if (Array.isArray(this._newValue)) {
       for (let i = 0; i < this._newValue.length; i += 1) {
-        const value = this._newValue[i];
+        console.log(this.path);
         const path = `${this.path}[${i}]`;
         const property = this.serializedObject.findProperty(path);
-        if (property) {
-          children.push(property);
-        } else {
-          children.push(
-            new SerializedProperty(this.serializedObject, path, value)
-          );
-        }
+        children.push(property);
       }
     } else {
       Object.keys(this._newValue).forEach((key) => {
@@ -103,10 +119,21 @@ export class SerializedProperty {
     const { lastSegment } = this;
 
     // convert snake_case, camelCase, PascalCase to human readable
-    return lastSegment
-      .replace(/([A-Z])/g, " $1")
-      .replace(/_/g, " ")
-      .trim();
+    return toTitleCase(lastSegment);
+  }
+
+  public applyChanges() {
+    this._previousValue = this.originalValue;
+    this.originalValue = this._newValue;
+
+    set(this.serializedObject.targetObject, this.path, this._newValue);
+  }
+
+  public revertChanges() {
+    this._newValue = this._previousValue;
+    this.originalValue = this._previousValue;
+
+    set(this.serializedObject.targetObject, this.path, this._previousValue);
   }
 
   public get value() {
@@ -133,6 +160,10 @@ export class SerializedProperty {
     this.setValue(value);
   }
 
+  public get isVector2() {
+    return this._newValue instanceof Vector2;
+  }
+
   public get colorValue() {
     if (!(this._newValue instanceof Color)) {
       throw new Error("Value is not a Color");
@@ -147,6 +178,10 @@ export class SerializedProperty {
     }
 
     this.setValue(value);
+  }
+
+  public get isColor() {
+    return this._newValue instanceof Color;
   }
 
   public get rectValue() {
@@ -165,6 +200,10 @@ export class SerializedProperty {
     this.setValue(value);
   }
 
+  public get isRect() {
+    return this._newValue instanceof Rect;
+  }
+
   public get numberValue() {
     if (typeof this._newValue !== "number") {
       throw new Error("Value is not a number");
@@ -179,6 +218,10 @@ export class SerializedProperty {
     }
 
     this.setValue(value);
+  }
+
+  public get isNumber() {
+    return typeof this._newValue === "number";
   }
 
   public get stringValue() {
@@ -197,6 +240,10 @@ export class SerializedProperty {
     this.setValue(value);
   }
 
+  public get isString() {
+    return typeof this._newValue === "string";
+  }
+
   public get booleanValue() {
     if (typeof this._newValue !== "boolean") {
       throw new Error("Value is not a boolean");
@@ -213,6 +260,30 @@ export class SerializedProperty {
     this.setValue(value);
   }
 
+  public get isBoolean() {
+    return typeof this._newValue === "boolean";
+  }
+
+  public get spriteValue() {
+    if (!(this._newValue instanceof Sprite)) {
+      throw new Error("Value is not a Sprite");
+    }
+
+    return this._newValue;
+  }
+
+  public set spriteValue(value: Sprite) {
+    if (!(value instanceof Sprite)) {
+      throw new Error("Value is not a Sprite");
+    }
+
+    this.setValue(value);
+  }
+
+  public get isSprite() {
+    return this._newValue instanceof Sprite;
+  }
+
   public get transformValue() {
     if (!(this._newValue instanceof Transform)) {
       throw new Error("Value is not a Transform");
@@ -224,6 +295,42 @@ export class SerializedProperty {
   public set transformValue(value: Transform) {
     if (!(value instanceof Transform)) {
       throw new Error("Value is not a Transform");
+    }
+
+    this.setValue(value);
+  }
+
+  public get isTransform() {
+    return this._newValue instanceof Transform;
+  }
+
+  public get arrayValue() {
+    if (!Array.isArray(this._newValue)) {
+      throw new Error("Value is not an array");
+    }
+
+    return this._newValue;
+  }
+
+  public set arrayValue(value: any[]) {
+    if (!Array.isArray(value)) {
+      throw new Error("Value is not an array");
+    }
+
+    this.setValue(value);
+  }
+
+  public get objectValue() {
+    if (typeof this._newValue !== "object") {
+      throw new Error("Value is not an object");
+    }
+
+    return this._newValue;
+  }
+
+  public set objectValue(value: any) {
+    if (typeof value !== "object") {
+      throw new Error("Value is not an object");
     }
 
     this.setValue(value);

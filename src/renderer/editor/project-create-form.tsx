@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import NiceModal, { useModal } from "@ebay/nice-modal-react";
 
 import {
   Form,
@@ -28,6 +29,14 @@ const formSchema = z.object({
 
 type ProjectCreateFormProps = {
   onProjectCreate: (project: SavedProject) => void;
+};
+
+const ProjectCreateFormDialog = NiceModal.create<ProjectCreateFormProps>(
+  (props) => <ProjectCreateForm {...props} />
+);
+
+export const useProjectCreateFormDialog = () => {
+  return useModal(ProjectCreateFormDialog);
 };
 
 export const ProjectCreateForm = ({

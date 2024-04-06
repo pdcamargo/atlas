@@ -4,7 +4,7 @@ import { convertFileSrc } from "@tauri-apps/api/tauri";
 import { AssetType } from "./asset-type";
 
 import { Asset } from ".";
-import { fs } from "@atlas/engine/utils";
+import { fs, path } from "@atlas/engine/utils";
 import { AssetManager } from "@atlas/engine";
 
 export function getExtensionFromPath(filename: string): string | null {
@@ -66,6 +66,7 @@ export type FileDescriptor = {
   assetType: string;
   isDirectory: boolean;
   assetPath: string;
+  extension?: string;
 };
 
 export class VirtualFileSystem {
@@ -112,8 +113,14 @@ export class VirtualFileSystem {
         assetType: guessAssetTypeFromPath(absolutePath),
         isDirectory,
         assetPath: convertFileSrc(originalPath, "asset"),
-        metadata: await VirtualFileSystem.getMedataOrCreate(metadataPath),
+        metadata: await VirtualFileSystem.getMedataOrCreate(
+          metadataPath,
+          guessAssetTypeFromPath(absolutePath)
+        ),
         metadataPath,
+        extension: isDirectory
+          ? undefined
+          : getExtensionFromPath(nameWithExtension) ?? undefined,
       };
 
       this.files.push(fileDescriptor);
@@ -124,7 +131,10 @@ export class VirtualFileSystem {
     return path.replace(/\\/g, "/").replace(/\/\/+/g, "/");
   }
 
-  private static async getMedataOrCreate(metadataPath: string) {
+  private static async getMedataOrCreate(
+    metadataPath: string,
+    assetType: AssetType
+  ) {
     const metadataPathWithExt = `${metadataPath}.metadata`;
     const fileExists = await fs.exists(metadataPathWithExt);
 
@@ -135,6 +145,9 @@ export class VirtualFileSystem {
         defaultMetadata = {
           uuid: crypto.randomUUID(),
           ...AssetManager.createDefaultMedata(metadataPath),
+          ...(assetType === AssetType.Texture && {
+            textureName: await path.basename(metadataPath),
+          }),
         };
       } else {
         defaultMetadata = {
@@ -149,12 +162,12 @@ export class VirtualFileSystem {
       return defaultMetadata;
     }
 
-    return (await fs.readJson(metadataPath)) as Record<string, unknown>;
+    return (await fs.readJson(metadataPathWithExt)) as Record<string, unknown>;
   }
 }
 
 export class AssetDatabase {
-  public static readonly assets: Asset<unknown>[] = [];
+  public static readonly assets: Map<string, Asset> = new Map();
 
   public static async loadFileSystem(rootPath: string) {
     if (!rootPath) {
@@ -165,41 +178,28 @@ export class AssetDatabase {
       path: rootPath,
     });
 
-    const fileSystem = new VirtualFileSystem(paths);
+    const fileSystem = new VirtualFileSystem(
+      paths.filter((p) => !p.endsWith(".DS_Store"))
+    );
 
     await fileSystem.setupFiles();
 
     return fileSystem;
   }
 
-  public static async loadAssets(path: string) {
-    const projectFiles = await AssetDatabase.loadProjectFiles(path);
-
-    console.log("Loaded project files:", projectFiles);
-
-    for (const path of projectFiles) {
-      const assetType = guessAssetTypeFromPath(path);
-
-      if (assetType === AssetType.Unknown) {
-        continue;
-      }
-
-      const asset = new Asset({ path, assetType });
-
-      AssetDatabase.assets.push(asset);
+  public static findAsset<T>(path: string, metadata?: Record<string, any>) {
+    if (this.assets.has(path)) {
+      return this.assets.get(path) as Asset;
     }
 
-    return AssetDatabase.assets;
-  }
+    const asset = new Asset<T>({
+      path,
+      assetType: guessAssetTypeFromPath(path),
+      metadata,
+    });
 
-  private static async loadProjectFiles(path: string): Promise<string[]> {
-    try {
-      const paths: string[] = await invoke("list_files_recursively", { path });
+    this.assets.set(path, asset);
 
-      return paths;
-    } catch (error) {
-      console.error("Failed to load files recursively:", error);
-      return [];
-    }
+    return asset;
   }
 }

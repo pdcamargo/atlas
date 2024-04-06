@@ -15,6 +15,7 @@ function App() {
       onProjectSelect={(project) => {
         Project.setCurrent(project).then(() => {
           setSelectedProject(project);
+          // console.log(project.fileSystem);
           // AppWindow.maximize();
         });
       }}

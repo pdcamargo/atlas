@@ -8,3 +8,7 @@ export * from "./editor-menu";
 export * from "./custom-editors";
 export * from "./serialized-object";
 export * from "./selection";
+export * from "./shortcut-manager";
+export * from "./undo";
+export * from "./renderers";
+export * from "./utils";
